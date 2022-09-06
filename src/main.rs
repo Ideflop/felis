@@ -69,7 +69,7 @@ fn run() -> Result<()> {
 }
 
 fn main() -> Result<()> {
-    Command::new("clear").output().expect("lol erreur");
+    print!("\x1B[2J");
 
     let string = "Hello everybody";
     let mut stdout = stdout();
