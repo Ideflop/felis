@@ -17,6 +17,9 @@
     //        .arg("wget.html")
     //        .output()
     //        .expect("error");
+//
+// pido w3m
+// kill -Stop (num du pid)
 use std::process::{
     Command,
     exit,
@@ -54,9 +57,8 @@ fn main() -> Result<()> {
     let mut cursor = TerminalCursor::new();
 
     loop {
-        let char = read_char();
-        
-        let hello = match char {
+        let char = read_char(); 
+        match char {
             'h' => cursor.move_left(1),
             'j' => cursor.move_down(1),
             'k' => cursor.move_up(1),
@@ -64,11 +66,9 @@ fn main() -> Result<()> {
             _ => cursor.move_up(0),
         };
 
-
-        if read_char() == 'q' {
+        if char == 'q' {
             exit(1)
         }
-        //println!("{}", char);
         
     }
     
