@@ -1,22 +1,3 @@
-use std::io::{stdout, Write};
-use std::process::Command;
-
-use crossterm::event::{
-    poll, KeyboardEnhancementFlags, PopKeyboardEnhancementFlags, PushKeyboardEnhancementFlags,
-};
-use crossterm::{
-    cursor::{position, Show, MoveTo},
-    event::{
-        read, DisableBracketedPaste, DisableFocusChange, DisableMouseCapture, EnableBracketedPaste,
-        EnableFocusChange, EnableMouseCapture, Event, KeyCode, KeyEvent,
-    },
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode},
-    Result,
-    queue,
-};
-
-
 //fn search() {
 //    Command::new("wget")
 //            .arg("-O")
@@ -25,84 +6,82 @@ use crossterm::{
 //            .output()
 //            .expect("could not find the something needed to perform the search");
 //}
+    //Command::new("wget")
+    //        .arg("-O")
+    //        .arg("wget.html")
+    //        .arg("https://duckduckgo.com/html?q=macron")
+    //        .output()
+    //        .expect("error");
 
-pub fn read_char() -> Result<char> {
+    //Command::new("w3m")
+    //        .arg("wget.html")
+    //        .output()
+    //        .expect("error");
+use std::process::{
+    Command,
+    exit,
+};
+use crossterm::{
+    cursor::{
+        MoveRight,
+        MoveUp,
+        MoveDown,
+        MoveLeft,
+    },
+    event::{
+        Event,
+        read,
+        KeyEvent,
+        KeyCode,
+    },
+    queue,
+};
+
+pub fn read_char() -> char {
     loop {
         if let Ok(Event::Key(KeyEvent {
             code: KeyCode::Char(c),
             ..
         })) = read()
         {
-            return Ok(c);
+            return c;
         }
     }
 }
 
-fn run() -> Result<()> {
+fn main() {
+    Command::new("w3m")
+            .arg("https://duckduckgo.com/html?q=asdf")
+            .arg(">")
+            .arg("asdf.html")
+            .spawn()
+            .expect("error");
+
     loop {
-        // Blocking read
-        let event = read()?;
-        let mut stdout = stdout();
-
-        println!("Event: {:?}\r", event);
-
-        if event == Event::Key(KeyCode::Char('c').into()) {
-            println!("Cursor position: {:?}\r", position());
+        match read_char() {
+            'h' => MoveLeft(1),
+            'j' => MoveDown(1),
+            'k' => MoveUp(1),
+            'l' => MoveRight(1),
+            _ => (),
         }
 
-        match read_char() {
-            Ok('j') => {
-                queue!(stdout, MoveTo(10,10));
-                println!("Event {:?}", event);
-            }
-
-            Ok('k') => {
-                queue!(stdout, MoveTo(11,11));
-                println!("Event {:?}", event);
-            } 
-            Ok(_) | Err(_) => break
-        };
-        stdout.flush();
-
+        //if char == 'q' {
+        //    exit(1)
+        //} else if char == 'h' {
+        //    MoveLeft(1)
+        //} else if char == 'j' {
+        //    MoveDown(1)
+        //} else if char == 'k' {
+        //    MoveUp(1)
+        //} else if char == 'l' {
+        //    MoveRight(1)
+        //} else {
+        //    
+        //}
+        
+        //println!("{}", char);
+        
     }
-    Ok(())
-}
-
-fn main() -> Result<()> {
-    print!("\x1B[2J");
-
-    let string = "Hello everybody";
-    let mut stdout = stdout();
-
-    println!("{}",string);
-    enable_raw_mode()?;
-
-    execute!(
-        stdout,
-        Show,
-        EnableBracketedPaste,
-        EnableFocusChange,
-        EnableMouseCapture,
-        PushKeyboardEnhancementFlags(
-            KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES
-                | KeyboardEnhancementFlags::REPORT_ALL_KEYS_AS_ESCAPE_CODES
-                | KeyboardEnhancementFlags::REPORT_EVENT_TYPES
-        )
-    )?;
-
-    if let Err(e) = run() {
-        println!("Error: {:?}\r", e);
-    }
-
-    execute!(
-        stdout,
-        DisableBracketedPaste,
-        PopKeyboardEnhancementFlags,
-        DisableFocusChange,
-        DisableMouseCapture
-    )?;
     
-    Command::new("clear").output().expect("lol erreur");
-    disable_raw_mode()
-
 }
