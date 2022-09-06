@@ -21,21 +21,15 @@ use std::process::{
     Command,
     exit,
 };
-use crossterm::{
-    cursor::{
-        MoveRight,
-        MoveUp,
-        MoveDown,
-        MoveLeft,
-    },
+use crossterm::
     event::{
         Event,
         read,
         KeyEvent,
         KeyCode,
-    },
-    queue,
-};
+    };
+
+use crossterm_cursor::{Result, TerminalCursor};
 
 pub fn read_char() -> char {
     loop {
@@ -49,7 +43,7 @@ pub fn read_char() -> char {
     }
 }
 
-fn main() {
+fn main() -> Result<()> {
     Command::new("w3m")
             .arg("https://duckduckgo.com/html?q=asdf")
             .arg(">")
@@ -57,29 +51,23 @@ fn main() {
             .spawn()
             .expect("error");
 
-    loop {
-        match read_char() {
-            'h' => MoveLeft(1),
-            'j' => MoveDown(1),
-            'k' => MoveUp(1),
-            'l' => MoveRight(1),
-            _ => (),
-        }
+    let mut cursor = TerminalCursor::new();
 
-        //if char == 'q' {
-        //    exit(1)
-        //} else if char == 'h' {
-        //    MoveLeft(1)
-        //} else if char == 'j' {
-        //    MoveDown(1)
-        //} else if char == 'k' {
-        //    MoveUp(1)
-        //} else if char == 'l' {
-        //    MoveRight(1)
-        //} else {
-        //    
-        //}
+    loop {
+        let char = read_char();
         
+        let hello = match char {
+            'h' => cursor.move_left(1),
+            'j' => cursor.move_down(1),
+            'k' => cursor.move_up(1),
+            'l' => cursor.move_right(1),
+            _ => cursor.move_up(0),
+        };
+
+
+        if read_char() == 'q' {
+            exit(1)
+        }
         //println!("{}", char);
         
     }
