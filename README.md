@@ -1,1 +1,1 @@
-It's like lynx
+It's like lynx with w3m and wget
