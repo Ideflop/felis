@@ -18,6 +18,7 @@
     //        .output()
     //        .expect("error");
 use std::{
+    env::args,   
     thread::sleep,
     time::Duration,
     fs::File,
@@ -46,11 +47,31 @@ pub fn read_char() -> char {
     }
 }
 
+fn get_argument() -> String {
+    let args = args().skip(1).collect::<Vec<_>>();
+
+    if args.is_empty() {
+        println!("There are no argument giving");
+        exit(1)
+    }
+    let mut args = args.iter().peekable();
+    let mut args_str = "".to_owned();
+    while let Some(arg) = args.next() {
+        args_str.push_str(&format!("+{}",arg));
+    }
+    args_str.remove(0);
+    args_str
+
+}
+
 fn main() -> Result<()> {
-    let search = File::create("html/asdf.txt").expect("failes to open asdf.html");
+
+    let args = get_argument();
+        
+    let search = File::create("html/research.txt").expect("failes to open research.txt");
     
     let mut cmd = Command::new("w3m")
-            .arg("https://duckduckgo.com/html?q=asdf")
+            .arg(format!("https://duckduckgo.com/html?q={}",args))
             .stdout(search)
             .spawn()
             .expect("could not start w3m");
@@ -58,7 +79,7 @@ fn main() -> Result<()> {
     cmd.wait().expect("failed to finish w3m");
     
     let cmd = Command::new("w3m")
-            .arg("https://duckduckgo.com/html?q=asdf")
+            .arg(format!("https://duckduckgo.com/html?q={}",args))
             .spawn()
             .expect("could not start w3m");
     
