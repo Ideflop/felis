@@ -1,3 +1,3 @@
 #! /bin/bash
 
-kill -Stop $1
+kill -CONT $1

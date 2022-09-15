@@ -25,15 +25,48 @@ use std::{
     process::{
         Command,
         exit,
-}};
-use crossterm::
+    }
+};
+use crossterm::{
+    terminal::size,
     event::{
         Event,
         read,
         KeyEvent,
         KeyCode,
-    };
+    }
+};
 use crossterm_cursor::{Result, TerminalCursor};
+
+pub struct Process {
+    pid: u32, 
+    active: bool,
+}
+
+impl Process {
+    pub fn new(cmd: std::process::Child) -> Self {
+        Self {
+            pid: cmd.id(),
+            active: true,
+        }
+    }
+
+    pub fn activate(&mut self) {
+        self.active = true;
+        Command::new("felis-kill-START")
+                .arg(format!("{}", self.pid))
+                .spawn()
+                .expect("could not start stop pid");
+    }
+
+    pub fn deactivate(&mut self) {
+        self.active = false;
+        Command::new("felis-kill-STOP")
+                .arg(format!("{}", self.pid))
+                .spawn()
+                .expect("could not start stop pid");
+    }
+}
 
 pub fn read_char() -> char {
     loop {
@@ -64,6 +97,24 @@ fn get_argument() -> String {
 
 }
 
+fn check_display(cursor: &mut crossterm_cursor::TerminalCursor, w3m: &mut Process) -> Result<()>{
+    let pos = cursor.pos()?.1; 
+    let pos_y = cursor.pos()?.0; 
+    let terminal_size = size()?.1;
+    //println!("pos = {}", pos);
+    //println!("terminal {}", terminal_size -2u16);
+    if pos == terminal_size -3u16{
+        w3m.activate();
+        sleep(Duration::from_millis(1000));
+        cursor.goto(pos_y, pos + 2u16);
+        sleep(Duration::from_millis(1000));
+        w3m.deactivate();
+    }
+
+    Ok(())
+
+}
+
 fn main() -> Result<()> {
 
     let args = get_argument();
@@ -83,15 +134,12 @@ fn main() -> Result<()> {
             .spawn()
             .expect("could not start w3m");
     
-    let pid = cmd.id();
+    let mut w3m = Process::new(cmd);
 
-    sleep(Duration::from_millis(2500));
-    Command::new("felis-kill-bin")
-            .arg(format!("{}", pid))
-            .spawn()
-            .expect("could not start stop pid");
+    sleep(Duration::from_millis(5500));
+    w3m.deactivate();
 
-    let mut cursor = TerminalCursor::new();
+    let mut cursor= TerminalCursor::new();
 
     loop {
         let char = read_char(); 
@@ -99,23 +147,22 @@ fn main() -> Result<()> {
         // the 2 macht char are nearly the same because
         // I don't now how to to make _ empty
         match char {
-            'h' => cursor.move_left(2),
+            'h' => cursor.move_right(1),
             'j' => cursor.move_down(2),
-            'k' => cursor.move_up(2),
+            'k' => cursor.move_down(1),
             'l' => cursor.move_right(2),
+            'q' => exit(1),
             _ => cursor.move_up(1),
         };
         match char {
-            'h' => cursor.move_right(1),
+            'h' => cursor.move_left(2),
             'j' => cursor.move_up(1),
-            'k' => cursor.move_down(1),
+            'k' => cursor.move_up(2),
             'l' => cursor.move_left(1),
             _ => cursor.move_down(1),
         };
 
-        if char == 'q' {
-            exit(1)
-        }
+        check_display(&mut cursor, &mut w3m);
         
     }
     
