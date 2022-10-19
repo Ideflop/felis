@@ -1,4 +1,9 @@
+use crate::config::create_config;
+
+pub mod config;
+
 use std::{
+    path::Path,
     env::args,   
     process::{
         Command,
@@ -6,6 +11,14 @@ use std::{
     }
 };
 use crossterm_cursor::{Result};
+
+fn check_config(){
+    let b = Path::new("~/.config/felis/config").is_file();
+    if b == false { // need to fix
+        let _config = create_config(); // in config.rs 
+    }
+    println!("oui");
+}
 
 fn get_argument() -> String {
     let args = args().skip(1).collect::<Vec<_>>();
@@ -26,7 +39,10 @@ fn get_argument() -> String {
 
 fn main() -> Result<()> {
 
+    check_config();
+    
     let args = get_argument();
+
         
     let mut cmd = Command::new("w3m")
             .arg(format!("https://duckduckgo.com/html?q={}",args))
