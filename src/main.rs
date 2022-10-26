@@ -1,24 +1,16 @@
-use crate::config::create_config;
+use crate::config::check_config;
 
 pub mod config;
 
 use std::{
-    path::Path,
     env::args,   
     process::{
         Command,
         exit,
     }
 };
-use crossterm_cursor::{Result};
+use crossterm_cursor::Result;
 
-fn check_config(){
-    let b = Path::new("~/.config/felis/config").is_file();
-    if b == false { // need to fix
-        let _config = create_config(); // in config.rs 
-    }
-    println!("oui");
-}
 
 fn get_argument() -> String {
     let args = args().skip(1).collect::<Vec<_>>();
@@ -39,7 +31,7 @@ fn get_argument() -> String {
 
 fn main() -> Result<()> {
 
-    check_config();
+    check_config(); // in config.rs
     
     let args = get_argument();
 
