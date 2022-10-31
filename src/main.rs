@@ -1,14 +1,18 @@
-use crate::config::check_config;
+use crate::config::{
+    check_config,
+    create_alias,
+};
 
 pub mod config;
 
 use std::{
     fs,
+    str::FromStr,
     env::args,   
     process::{
         Command,
         exit,
-    }, str::FromStr
+    }, 
 };
 use crossterm_cursor::Result;
 use toml::value::Value;
@@ -27,6 +31,11 @@ fn get_argument() -> String {
         args_str.push_str(&format!("+{}",arg));
     }
     args_str.remove(0);
+
+    match args_str.as_str().trim() {
+        "-a" => create_alias(), // in config.rs
+        _ => ()
+    }
     args_str
 
 }

@@ -1,11 +1,14 @@
 use std::{env,
     path::Path,
-    fs,
-    fs::File,
+    process::exit,
+    fs::{self,
+        File,
+        OpenOptions
+    },
     io::{
         stdin,
         stdout, Write,
-    },
+    }, 
 };
 use toml::{map::Map, Value};
 
@@ -68,4 +71,53 @@ fn to_toml(config:String) -> Value{
     let mut engine = Map::new();
     engine.insert("search_engine".into(), Value::String(config));
     Value::Table(engine)
+}
+
+pub fn create_alias(){
+    println!("felis is going to create an alias into your .bashrc in your home directory");
+    println!("Wich alias shoud be used ?");
+    print!("alias name : ");
+
+    let mut alias = String::new();
+    let _ = stdout().flush();
+    stdin().read_line(&mut alias).expect("An error happend while reading the input");
+    
+    let path_to_bashrc = env::var("XDG_CONFIG_HOME")
+        .or_else(|_| env::var("HOME").map(|home|format!("{}/.bashrc", home))).unwrap();
+    if !Path::new(&path_to_bashrc).is_file(){
+        println!("Could not find .bashrc file in your home directory. Please create it");
+        exit(1)
+    }
+
+    let mut bashrc = OpenOptions::new()
+                                .write(true)
+                                .append(true)
+                                .open(path_to_bashrc)
+                                .unwrap();
+
+    if let Err(_e) = writeln!(bashrc, "") {
+        println!("could not write in bashrc");
+        exit(1)
+    }
+
+    if let Err(_e) = writeln!(bashrc, "# The next alias was create by felis") {
+        println!("could not write in bashrc");
+        exit(1)
+    }
+
+    if let Err(_e) = writeln!(bashrc, "# This alias is for launching felis") {
+        println!("could not write in bashrc");
+        exit(1)
+    }
+
+    let alias_format = format!("alias {}=\"felis\"", alias.trim());
+
+    if let Err(_e) = writeln!(bashrc, "{}",alias_format) {
+        println!("could not write in bashrc");
+        exit(1)
+    }
+
+    println!("the alias {} was succefully added in .bashrc", alias.trim());
+    println!("To use the alias restart your shell");
+    exit(1)
 }
