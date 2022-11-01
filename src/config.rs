@@ -61,15 +61,15 @@ fn create_config(felis_config_dir:String) -> std::io::Result<()> {
     }; 
 
     // write to file as toml
-    let toml_string = toml::to_string(&to_toml(config)).expect("could not make toml for the config file");
+    let toml_string = toml::to_string(&to_toml("search_engine", config)).expect("could not make toml for the config file");
     fs::write(felis_config_file_copy, toml_string).expect("Could not write to file");
     
     Ok(())
 }
 
-fn to_toml(config:String) -> Value{
+fn to_toml(index:&str, value:String) -> Value{
     let mut engine = Map::new();
-    engine.insert("search_engine".into(), Value::String(config));
+    engine.insert(index.into(), Value::String(value));
     Value::Table(engine)
 }
 
@@ -114,6 +114,22 @@ pub fn create_alias(){
 
     if let Err(_e) = writeln!(bashrc, "{}",alias_format) {
         println!("could not write in bashrc");
+        exit(1)
+    }
+
+    // write the alias to the config file
+    let path_config = check_config();
+    let toml_string = toml::to_string(&to_toml("alias", alias.trim().to_string())).expect("could not make toml for the config file");
+
+    let mut config_file = OpenOptions::new()
+                                .write(true)
+                                .append(true)
+                                .open(path_config)
+                                .unwrap();
+
+    if let Err(_e) = writeln!(config_file, "{}", toml_string) {
+        println!("could not write your alias in the config file but it's should be in your .bashrc");
+        println!("Restart your shell end test if your alias work");
         exit(1)
     }
 
