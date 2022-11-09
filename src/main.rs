@@ -25,6 +25,13 @@ fn get_argument() -> String {
         println!("There are no argument giving");
         exit(1)
     }
+
+    match args.get(0).unwrap().as_str() {
+        "-a" => create_alias(), // in config.rs
+        "-u" => url(args.get(1).unwrap().to_owned()),
+        _ => ()
+    }
+
     let mut args = args.iter().peekable();
     let mut args_str = "".to_owned();
     while let Some(arg) = args.next() {
@@ -34,6 +41,11 @@ fn get_argument() -> String {
 
     match args_str.as_str().trim() {
         "-a" => create_alias(), // in config.rs
+        "-u" => {
+            let mut url_adrress  = args_str.clone();
+            url_adrress.remove(0);
+            url(url_adrress);
+            }
         _ => ()
     }
     args_str
@@ -48,6 +60,15 @@ fn get_search_engine(config_path : String)-> String {
     let engine = engine_vec[1].to_owned();
     engine
 
+}
+
+fn url(url_adrress: String) {
+    let mut cmd = Command::new("w3m")
+            .arg(format!("{}", url_adrress))
+            .spawn()
+            .expect("could not start w3m");
+    cmd.wait().expect("failed to finish w3m");
+    exit(1)
 }
 
 fn main() -> Result<()> {
@@ -65,3 +86,5 @@ fn main() -> Result<()> {
 
     Ok(())
 }
+
+
