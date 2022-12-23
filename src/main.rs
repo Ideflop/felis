@@ -23,12 +23,17 @@ fn get_argument() -> String {
     }
 
     match args.get(0).unwrap().as_str() {
-        "-a" => create_alias(), // in config.rs
-        "-u" => url(args.get(1).unwrap().to_owned()),
+        "-a" => {
+            create_alias(); // in config.rs
+            args.remove(0);
+        },
+        "-u" => {
+            args.remove(0);
+            url(&args[0]);
+            },
         _ => ()
     }
 
-    args.remove(0);
 
     let mut args_item = args.iter().peekable();
 
@@ -43,20 +48,11 @@ fn get_argument() -> String {
     }
     args_str.remove(0);
 
-    match args_str.as_str().trim() {
-        "-a" => create_alias(), // in config.rs
-        "-u" => {
-            let mut url_adrress  = args_str.clone();
-            url_adrress.remove(0);
-            url(url_adrress);
-            }
-        _ => ()
-    }
-    args_str
+    args_str.trim().to_string()
 
 }
 
-fn url(url_adrress: String) {
+fn url(url_adrress: &String) {
     let mut cmd = Command::new("w3m")
             .arg(format!("{}", url_adrress))
             .spawn()

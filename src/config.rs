@@ -81,7 +81,7 @@ pub fn create_alias(){
     let mut alias = String::new();
     let _ = stdout().flush();
     stdin().read_line(&mut alias).expect("An error happend while reading the input");
-    
+
     let path_to_bashrc = env::var("XDG_CONFIG_HOME")
         .or_else(|_| env::var("HOME").map(|home|format!("{}/.bashrc", home))).unwrap();
     if !Path::new(&path_to_bashrc).is_file(){

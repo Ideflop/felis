@@ -7,30 +7,6 @@ use std::{
     str::FromStr,
 };
 
-pub struct Tomll;
-
-impl Toml {
-
-    pub fn get_from_toml_file( search_value: String)-> String {
-        // check if the config file exist else create it and return the path of the config file
-        let config_path = check_config(); // in config.rs
-
-        let config_read = fs::read_to_string(config_path).expect("could not read the config file of felis");
-        let content = Value::from_str(&config_read).unwrap();
-        let retrieved_value = content.get(search_value).unwrap().to_string();
-        let retrieved_vec: Vec<&str> =  retrieved_value.split('"').collect();
-        let value= retrieved_vec[1].to_owned();
-        value
-    }
-
-    pub fn ito_toml(index:&str, value:String) -> Value{
-        let mut engine = Map::new();
-        engine.insert(index.into(), Value::String(value));
-        Value::Table(engine)
-    }
-
-}
-
 pub struct Toml;
 
 impl Toml {
