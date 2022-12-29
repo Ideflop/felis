@@ -15,7 +15,7 @@ use std::{env,
 
 use crate::toml_manipulation::Toml;
 
-pub fn check_config() -> String{
+pub fn check_config() -> String {
     
     // check if config dir exist
     let config_home_result = env::var("XDG_CONFIG_HOME")
@@ -30,6 +30,7 @@ pub fn check_config() -> String{
         .or_else(|_| env::var("HOME").map(|home|format!("{}/.config/felis", home))).unwrap();
     let felis_config = felis_config_dir.clone();
     let felis_exist = Path::new(&felis_config_dir).exists();
+    // TODO: check if config file exist because it just check if the dir exist
     if !felis_exist {
         _ = create_config(felis_config_dir)
     }
@@ -48,7 +49,7 @@ fn create_config(felis_config_dir:String) -> std::io::Result<()> {
     File::create(felis_config_file)?;
 
 
-    println!("Config file creation");
+    println!("Config file creation at {}", felis_config_file_copy);
 
     println!("Wich search engine would you use ?");
     let mut search_engine = String::new();
@@ -67,14 +68,38 @@ fn create_config(felis_config_dir:String) -> std::io::Result<()> {
     let toml_string = toml::to_string(&Toml::create_toml_table("search_engine", config.as_str())).expect("could not make toml for the config file");
     fs::write(felis_config_file_copy, toml_string).expect("Could not write to file");
     
-    // TODO: add the possibility to create an alias 
+
+    print!("Would you like to create an alias for felis ? : [y]es or [n]o : ");
+    let mut make_alias = String::new();
+    let _ = stdout().flush();
+    stdin().read_line(&mut make_alias).expect("This wasnt a letter");
+
+    match make_alias.trim() {
+        "y" => create_alias(),
+        "n" => (),
+        _ => panic!("the letter is not y or n"),
+    }
 
     Ok(())
 }
 
-
 pub fn create_alias(){
+
     println!("felis is going to create an alias into your .bashrc in your home directory");
+
+    let felis_alias = Toml::get_value("alias");
+    let already_in_config: bool;
+    match felis_alias {
+        Ok(value) => {
+            println!("The current alias is {}", value);
+            already_in_config = true;
+        },
+        Err(_) => {
+            print!("");
+            already_in_config = false;
+        }
+    }
+
     println!("Wich alias shoud be used ?");
     print!("alias name : ");
 
@@ -82,6 +107,48 @@ pub fn create_alias(){
     let _ = stdout().flush();
     stdin().read_line(&mut alias).expect("An error happend while reading the input");
 
+    write_in_bahsrc(&alias, true);
+    write_in_config(&alias, already_in_config);
+
+    println!("To use the alias : {alias}, restart your shell");
+    sleep(Duration::from_secs(2));
+}
+
+fn write_in_config(alias: &String, already_in: bool) {
+
+    match already_in {
+        true => {
+            let result = Toml::update_value("alias", alias.trim());
+            match result {
+                Ok(_) => println!("Successfully updated the value"),
+                Err(error) => println!("Error updating value: {}", error),
+            }
+            return
+        },
+        false => (),
+    } 
+    
+    let path_config = check_config();
+    let toml_string = toml::to_string(&Toml::create_toml_table("alias", alias.trim())).expect("could not make toml for the config file");
+
+    let mut config_file = OpenOptions::new()
+                                .write(true)
+                                .append(true)
+                                .open(path_config)
+                                .unwrap();
+
+    if let Err(_e) = writeln!(config_file, "{}", toml_string) {
+        println!("could not write your alias in the config file ");
+        println!("If there was no error about the .bashrc file than you can use the alias");
+        sleep(Duration::from_secs(2));
+        return
+    }
+
+    println!("the alias {} was succefully added in config file", alias.trim());
+}
+
+fn write_in_bahsrc(alias: &String, already_in: bool) {
+    // TODO: check if the alias is already in the .bashrc file and just update it
     let path_to_bashrc = env::var("XDG_CONFIG_HOME")
         .or_else(|_| env::var("HOME").map(|home|format!("{}/.bashrc", home))).unwrap();
     if !Path::new(&path_to_bashrc).is_file(){
@@ -117,30 +184,4 @@ pub fn create_alias(){
         exit(1)
     }
 
-    // write the alias to the config file
-    let path_config = check_config();
-    let toml_string = toml::to_string(&Toml::create_toml_table("alias", alias.trim())).expect("could not make toml for the config file");
-
-    let mut config_file = OpenOptions::new()
-                                .write(true)
-                                .append(true)
-                                .open(path_config)
-                                .unwrap();
-
-    if let Err(_e) = writeln!(config_file, "{}", toml_string) {
-        println!("could not write your alias in the config file but it's should be in your .bashrc");
-        println!("Restart your shell end test if your alias work");
-        sleep(Duration::from_secs(2));
-        return
-    }
-
-    println!("the alias {} was succefully added in .bashrc", alias.trim());
-    println!("To use the alias restart your shell");
-    sleep(Duration::from_secs(2));
 }
-
-// TODO :
-// find_alias open the config file (get_value in Toml) and return the alias 
-// create_alias display the alias, ask the alias and give it to write*
-// write_in_config write in the config file
-// write_in_bashrc write in the bashrc

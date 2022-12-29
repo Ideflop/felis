@@ -22,6 +22,7 @@ fn get_argument() -> String {
         exit(1)
     }
 
+    // TODO: make a argument to uninstall felis
     match args.get(0).unwrap().as_str() {
         "-a" => {
             create_alias(); // in config.rs

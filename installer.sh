@@ -8,7 +8,7 @@ echo "felis is going to be compiled";
 sleep 1.5
 
 if cargo build --release ; then
-   echo "felis will be copy to /usr/bin/ therefor it needs the sudo right";
+   echo "felis will be copy to /usr/bin/ therefore it needs the sudo right";
    sudo cp target/release/felis /usr/bin/
    echo "try to run felis to check if it install";
 else
