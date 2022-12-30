@@ -5,7 +5,6 @@ use std::{
         exit,
     }, 
 };
-use crossterm_cursor::Result;
 
 use config::create_alias;
 use toml_manipulation::Toml;
@@ -62,7 +61,7 @@ fn url(url_adrress: &String) {
     exit(1)
 }
 
-fn main() -> Result<()> {
+fn main() {
 
     let args = get_argument();
     let engine = Toml::get_value("search_engine").unwrap();
@@ -73,5 +72,4 @@ fn main() -> Result<()> {
             .expect("could not start w3m");
     cmd.wait().expect("failed to finish w3m");
 
-    Ok(())
 }
