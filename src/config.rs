@@ -9,7 +9,9 @@ use std::{env,
     },
     io::{
         stdin,
-        stdout, Write,
+        stdout,
+        Write,
+        Read,
     }, 
 };
 
@@ -107,7 +109,7 @@ pub fn create_alias(){
     let _ = stdout().flush();
     stdin().read_line(&mut alias).expect("An error happend while reading the input");
 
-    write_in_bahsrc(&alias, true);
+    write_in_bahsrc(&alias, already_in_config);
     write_in_config(&alias, already_in_config);
 
     println!("To use the alias : {alias}, restart your shell");
@@ -148,12 +150,20 @@ fn write_in_config(alias: &String, already_in: bool) {
 }
 
 fn write_in_bahsrc(alias: &String, already_in: bool) {
-    // TODO: check if the alias is already in the .bashrc file and just update it
+
     let path_to_bashrc = env::var("XDG_CONFIG_HOME")
         .or_else(|_| env::var("HOME").map(|home|format!("{}/.bashrc", home))).unwrap();
     if !Path::new(&path_to_bashrc).is_file(){
         println!("Could not find .bashrc file in your home directory. Please create it");
         exit(1)
+    }
+
+    match already_in {
+        true => {
+            let _result = update_alias_bashrc(alias, &path_to_bashrc).unwrap();
+            return
+        },
+        false => (),
     }
 
     let mut bashrc = OpenOptions::new()
@@ -184,4 +194,29 @@ fn write_in_bahsrc(alias: &String, already_in: bool) {
         exit(1)
     }
 
+}
+
+fn update_alias_bashrc(alias : &String, path_to_bashrc: &String) -> Result<(), String> {
+
+    let mut bashrc_file = match OpenOptions::new().read(true).write(true).open(path_to_bashrc) {
+        Ok(file) => file,
+        Err(error) => return Err(format!("Could not open the file : {}", error)),
+    };
+
+    let mut bashrc_content = String::new();
+    match bashrc_file.read_to_string(&mut bashrc_content) {
+        Ok(_) => (),
+        Err(error) => return Err(format!("Error: Could not read bashrc file, {}", error)),
+    }
+
+    let old_alias = format!("alias {}=\"felis\"", Toml::get_value("alias").unwrap().trim());
+    let new_alias = format!("alias {}=\"felis\"", alias.trim());
+    let new_bashrc_content = bashrc_content.replace(&old_alias, &new_alias);
+
+    match bashrc_file.write_all(new_bashrc_content.as_bytes()) {
+        Ok(_) => println!("Successfully changed alias {} to {} in {}", old_alias, new_alias, path_to_bashrc),
+        Err(e) => return Err(format!("Error: Could not write in bashrc, {}", e)),
+    }
+
+    Ok(())
 }
