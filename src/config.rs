@@ -32,19 +32,25 @@ pub fn check_config() -> String {
         .or_else(|_| env::var("HOME").map(|home|format!("{}/.config/felis", home))).unwrap();
     let felis_config = felis_config_dir.clone();
     let felis_exist = Path::new(&felis_config_dir).exists();
-    // TODO: check if config file exist because it just check if the dir exist
+
     if !felis_exist {
-        _ = create_config(felis_config_dir)
+        _ = create_config(&felis_config_dir, true)
     }
     let felis_config_file = felis_config.to_owned()+"/config";
+    let felis_config_file_exist = Path::new(&felis_config_file).exists();
+    if !felis_config_file_exist {
+        _ = create_config( &felis_config_dir, false)
+    }
     felis_config_file
     
 }
 
-fn create_config(felis_config_dir:String) -> std::io::Result<()> {
-    // we create felis dir and config file
+fn create_config(felis_config_dir: &String, create_felis_dir: bool) -> std::io::Result<()> {
+
     let felis_config_file_prep = felis_config_dir.clone().to_owned();
-    fs::create_dir(felis_config_dir)?;
+    if create_felis_dir {
+        fs::create_dir(felis_config_dir)?;
+    }
 
     let felis_config_file = felis_config_file_prep+"/config";
     let felis_config_file_copy = felis_config_file.clone();
@@ -196,6 +202,14 @@ fn write_in_bahsrc(alias: &String, already_in: bool) {
 
 }
 
+/// Updates the given alias in the specified bashrc file.
+///
+/// # Arguments
+/// * `alias` - The new alias to set.
+/// * `path_to_bashrc` - The path to the bashrc file.
+///
+/// # Returns
+/// If the alias was successfully updated, returns `Ok(())`. Otherwise, returns an `Err` containing an error message.
 fn update_alias_bashrc(alias : &String, path_to_bashrc: &String) -> Result<(), String> {
 
     let mut bashrc_file = match OpenOptions::new().read(true).write(true).open(path_to_bashrc) {
