@@ -38,7 +38,3 @@ If you want to open a specific URL, you can use the ```-u``` flag:
 ```
 felis -u https://www.rust-lang.org/
 ```
-
-## Know Issue
-
-if the ```felis``` directory exist in ```.config``` and there is no config file in it, then there will be an error. To fix it remove the ```felis``` directory in the ```.config``` directory.

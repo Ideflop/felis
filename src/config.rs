@@ -5,7 +5,7 @@ use std::{env,
     process::exit,
     fs::{self,
         File,
-        OpenOptions
+        OpenOptions,
     },
     io::{
         stdin,
@@ -118,7 +118,7 @@ pub fn create_alias(){
     write_in_bahsrc(&alias, already_in_config);
     write_in_config(&alias, already_in_config);
 
-    println!("To use the alias : {alias}, restart your shell");
+    println!("To use the alias : {}, restart your shell", alias.trim());
     sleep(Duration::from_secs(2));
 }
 
@@ -227,7 +227,8 @@ fn update_alias_bashrc(alias : &String, path_to_bashrc: &String) -> Result<(), S
     let new_alias = format!("alias {}=\"felis\"", alias.trim());
     let new_bashrc_content = bashrc_content.replace(&old_alias, &new_alias);
 
-    match bashrc_file.write_all(new_bashrc_content.as_bytes()) {
+    let mut old_bashrc_file = OpenOptions::new().read(true).write(true).truncate(true).open(path_to_bashrc).unwrap();
+    match old_bashrc_file.write_all(new_bashrc_content.as_bytes()) {
         Ok(_) => println!("Successfully changed alias {} to {} in {}", old_alias, new_alias, path_to_bashrc),
         Err(e) => return Err(format!("Error: Could not write in bashrc, {}", e)),
     }
