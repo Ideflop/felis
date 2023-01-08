@@ -4,7 +4,7 @@ Felis is a command line tool written in Rust that allows you to search the inter
 
 ## Installation
 
-To install felis, you will need to have Rust and w3m installed on your system. You can use the provided ``` installer.sh ``` script to automatically install the dependencies and compile felis but you need to have Rust installed, or you can follow these steps manually:
+To install felis, you will need to have Rust and w3m installed on your system. You can use the provided ``` installer.sh ``` script to automatically compile felis but you need to have Rust and w3m installed, or you can follow these steps manually:
 
 1. Install Rust by following the instructions at https://www.rust-lang.org/tools/install.
 
