@@ -1,21 +1,30 @@
 #!/usr/bin/bash
 
-# Installer for felis
-
 set -eu -o pipefail
 
-echo "felis is going to be compiled";
+
+if [ $# -eq 0 ]; then
+    printf "You need to add a path where the binary will be and optionaly a list of aliases for the binary\n installer.sh <Storage Path> <Aliases separaed with space ...>\n"
+    exit 1
+fi
+
+printf "felis is going to be compiled\n";
 sleep 1.5
 
+path="$1"
+
 if cargo build --release ; then
-   echo "felis will be copy to /usr/bin/ therefore it needs the sudo right";
-   sudo cp target/release/felis /usr/bin/
-   echo "try to run felis to check if it install";
+
+    cp target/release/felis "$path"
+    shift
+    for ali in "$@"; do
+        ln -s "$path"/felis "$path"/"$ali"
+    done
+    printf "try to run felis to check if it install\n";
 else
-   cat << EOF
-   Unable to run 'cargo build --release'
-   If you just installed Rust then try to reload the terminal
-   else if Rust ins't install you can download it at :
-   www.rust-lang.org
-EOF
+    printf "
+    Unable to run 'cargo build --release'
+    If you just installed Rust then try to reload the terminal
+    else if Rust ins't install you can download it at :
+    www.rust-lang.org\n"
 fi
